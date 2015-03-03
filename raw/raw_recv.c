@@ -21,7 +21,7 @@ int main(void)
         exit(EXIT_FAILURE);
     }
 
-    int fromlen = sizeof(saddr);
+    socklen_t fromlen = sizeof(saddr);
 
     while(1) {
         memset(buf, 0, sizeof(buf));
@@ -36,9 +36,14 @@ int main(void)
 }
 
 static void process_packet(char* buf, int size) {
+#ifdef __APPLE__
+    struct ip *iph = (struct ip*)buf;
+    int iphlen = iph->ip_hl*4;
+#elif
     struct iphdr *iph = (struct iphdr*)buf;
     int iphlen = iph->ihl*4;
+#endif
     char* data = (char*)(buf + iphlen);
-    printf("data [%s]\n", data);
+    printf("recv data [%d][%s]\n",iphlen, data);
     return;
 }

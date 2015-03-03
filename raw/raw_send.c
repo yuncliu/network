@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
 
 #define DEST "127.0.0.1"
 
@@ -17,7 +18,6 @@ int main(void)
     struct sockaddr_in daddr;
     char buf[50];
     /* point the iphdr to the beginning of the packet */
-    struct iphdr *ip = (struct iphdr *)buf;  
 
     if ((sock_raw = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0) {
         perror("error:");
@@ -28,7 +28,8 @@ int main(void)
     daddr.sin_port = 0; /* not needed in SOCK_RAW */
     inet_pton(AF_INET, DEST, (struct in_addr *)&daddr.sin_addr.s_addr);
     memset(daddr.sin_zero, 0, sizeof(daddr.sin_zero));
-    
+#ifdef __linux 
+    struct iphdr *ip = (struct iphdr *)buf;  
     ip->ihl = 5;
     ip->version = 4;
     ip->tos = 0;
@@ -40,8 +41,24 @@ int main(void)
     ip->saddr = daddr.sin_addr.s_addr;
     ip->daddr = daddr.sin_addr.s_addr;
     int iplen = ip->ihl * 4;
+#else
+    struct ip *ip = (struct ip *)buf;  
+    ip->ip_hl = 5;
+    ip->ip_v = 4;
+    ip->ip_tos = 0;
+    ip->ip_len = htons(20);    /* 16 byte value */
+    ip->ip_off = 0;       /* no fragment */
+    ip->ip_ttl = 64;           /* default value */
+    ip->ip_p = IPPROTO_RAW; /* protocol at L4 */
+    ip->ip_sum = 0;          /* not needed in iphdr */
+    ip->ip_src = (struct in_addr)daddr.sin_addr;
+    ip->ip_dst = (struct in_addr)daddr.sin_addr;
+    int iplen = ip->ip_hl * 4;
+#endif
 
-    snprintf(buf + iplen, sizeof(buf) - iplen, "%s", "ip protocol directly");
+    //snprintf(buf + iplen, sizeof(buf) - iplen, "%s", "ip protocol directly");
+    //printf("ip hdr len  = %d\n", iplen);
+    snprintf(buf, sizeof(buf), "%s", "ip protocol directly");
 
 
     while(1) {

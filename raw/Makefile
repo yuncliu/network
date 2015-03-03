@@ -5,8 +5,8 @@ CC=gcc
 SERV_OBJ = raw_recv.o
 CLIE_OBJ = raw_send.o
 
-CFLAG = -g3 -O0
-CXXFLAG = -g3 -O0
+CFLAG = -g -O0
+CXXFLAG = -g -O0
 
 LINK = -lpthread
 
