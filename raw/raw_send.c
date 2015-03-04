@@ -41,6 +41,8 @@ int main(void)
     ip->saddr = daddr.sin_addr.s_addr;
     ip->daddr = daddr.sin_addr.s_addr;
     int iplen = ip->ihl * 4;
+    // linux will not add ip header
+    snprintf(buf + iplen, sizeof(buf) - iplen, "%s", "ip protocol directly");
 #else
     struct ip *ip = (struct ip *)buf;  
     ip->ip_hl = 5;
@@ -54,11 +56,11 @@ int main(void)
     ip->ip_src = (struct in_addr)daddr.sin_addr;
     ip->ip_dst = (struct in_addr)daddr.sin_addr;
     int iplen = ip->ip_hl * 4;
+    // osx will add ip header automatically
+    snprintf(buf, sizeof(buf), "%s", "ip protocol directly");
 #endif
 
-    //snprintf(buf + iplen, sizeof(buf) - iplen, "%s", "ip protocol directly");
     //printf("ip hdr len  = %d\n", iplen);
-    snprintf(buf, sizeof(buf), "%s", "ip protocol directly");
 
 
     while(1) {

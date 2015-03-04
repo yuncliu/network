@@ -39,7 +39,7 @@ static void process_packet(char* buf, int size) {
 #ifdef __APPLE__
     struct ip *iph = (struct ip*)buf;
     int iphlen = iph->ip_hl*4;
-#elif
+#else
     struct iphdr *iph = (struct iphdr*)buf;
     int iphlen = iph->ihl*4;
 #endif
